@@ -18,7 +18,7 @@ class VisitController extends Controller
     # load loyalty points with it
     # load cashier name with it
     # load member name with it
-    # order by max loyalty points
+    # order by max loyalty points 
 
     public function index(): AnonymousResourceCollection
     {
