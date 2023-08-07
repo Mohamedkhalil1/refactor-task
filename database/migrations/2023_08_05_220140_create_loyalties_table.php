@@ -4,14 +4,14 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
-
+return new class extends Migration
+{
     public function up(): void
     {
-        Schema::create('loyalty', function (Blueprint $table) {
+        Schema::create('loyalties', function (Blueprint $table) {
             $table->id();
             $table->decimal('points');
-            $table->foreignId('visit_id')->constrained();
+            $table->foreignId('visit_id')->unique()->constrained()->cascadeOnDelete()->cascadeOnUpdate();
             $table->timestamps();
         });
     }

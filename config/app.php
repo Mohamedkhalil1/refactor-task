@@ -5,6 +5,8 @@ use Illuminate\Support\ServiceProvider;
 
 return [
 
+    'showExceptionsTracing' => env('SHOW_EXCEPTIONS_TRACING'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Name
