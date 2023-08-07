@@ -11,7 +11,7 @@ return new class extends Migration {
         Schema::create('loyalty', function (Blueprint $table) {
             $table->id();
             $table->decimal('points');
-            $table->foreignId('visit_id')->constrained();
+            $table->unsignedBigInteger('visit_id');
             $table->timestamps();
         });
     }

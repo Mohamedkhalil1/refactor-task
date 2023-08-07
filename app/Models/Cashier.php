@@ -11,10 +11,7 @@ class Cashier extends Model
 {
     use HasFactory;
 
-    #region Attributes
-    #endregion
 
-    #region relations
     public function settings(): hasOne
     {
         return $this->hasOne(Setting::class);
@@ -24,5 +21,4 @@ class Cashier extends Model
     {
         return $this->hasMany(Visit::class);
     }
-    #endregion
 }
