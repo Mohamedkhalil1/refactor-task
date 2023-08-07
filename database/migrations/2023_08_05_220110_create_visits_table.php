@@ -11,8 +11,8 @@ return new class extends Migration {
         Schema::create('visits', function (Blueprint $table) {
             $table->id();
             $table->decimal('receipt', 5, 2);
-            $table->foreignId('member_id')->constrained();
-            $table->foreignId('cashier_id')->constrained();
+            $table->unsignedBigInteger('member_id');
+            $table->unsignedBigInteger('cashier_id');
             $table->timestamps();
         });
     }

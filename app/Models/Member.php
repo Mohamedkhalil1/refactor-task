@@ -11,19 +11,23 @@ class Member extends Model
 {
     use HasFactory;
 
-    #region Attributes
 
-    #endregion
+    protected $fillable = ['first_name', 'last_name', 'email', 'gender', 'phone'];
 
-    #region relations
+    protected $appends = ['full_name'];
+
+    public function getFullNameAttribute()
+    {
+        return $this->first_name . ' ' . $this->last_name;
+    }
+
     public function visits(): HasMany
     {
         return $this->hasMany(Visit::class);
     }
 
-    public function loyalty(): HasManyThrough
+    public function loyalties(): HasManyThrough
     {
-        return $this->hasManyThrough(Loyalty::class, Visit::class);
+        return $this->hasManyThrough(Loyalty::class, Visit::class, 'member_id', 'visit_id');
     }
-    #endregion
 }
