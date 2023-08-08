@@ -14,10 +14,10 @@ class LoyaltyResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'     => $this->id,
+            'id' => $this->id,
             'points' => $this->points,
-            'visit'  => $this->visit,
-            'member' => MemberResource::make($this->visit->member),
+            'visit' => new VisitResource($this->whenLoaded('visit')),
+            'member' => new MemberResource($this->whenLoaded('member')),
         ];
     }
 }

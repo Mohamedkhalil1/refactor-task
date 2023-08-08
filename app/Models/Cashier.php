@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasSearch;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,12 +10,12 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Cashier extends Model
 {
-    use HasFactory;
+    use HasFactory , HasSearch;
 
-    #region Attributes
-    #endregion
+    //region Attributes
+    //endregion
 
-    #region relations
+    //region relations
     public function settings(): hasOne
     {
         return $this->hasOne(Setting::class);
@@ -24,5 +25,5 @@ class Cashier extends Model
     {
         return $this->hasMany(Visit::class);
     }
-    #endregion
+    //endregion
 }

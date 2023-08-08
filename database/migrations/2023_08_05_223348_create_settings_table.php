@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -13,7 +14,7 @@ return new class extends Migration {
         Schema::create('settings', function (Blueprint $table) {
             $table->id();
             $table->foreignId('cashier_id')->constrained();
-            $table->enum('loyalty_model', ['first_model', 'second_model']);
+            $table->string('loyalty_model');
             $table->decimal('factor');
             $table->decimal('min_points');
             $table->timestamps();

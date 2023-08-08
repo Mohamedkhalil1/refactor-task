@@ -19,6 +19,8 @@ class RouteServiceProvider extends ServiceProvider
      */
     public const HOME = '/home';
 
+    public const API_ROUTES_PATH = 'routes/Api';
+
     /**
      * Define your route model bindings, pattern filters, and other route configuration.
      */
@@ -29,12 +31,31 @@ class RouteServiceProvider extends ServiceProvider
         });
 
         $this->routes(function () {
-            Route::middleware('api')
-                ->prefix('api')
-                ->group(base_path('routes/api.php'));
+            $this->mapMembersRoutes();
+            $this->mapVisitsRoutes();
 
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
         });
+    }
+
+    public function mapMembersRoutes(): void
+    {
+        $files = glob(base_path(self::API_ROUTES_PATH.'/Member/*.php'));
+        foreach ($files as $file) {
+            Route::middleware('api')
+                ->prefix('api/members')
+                ->group($file);
+        }
+    }
+
+    public function mapVisitsRoutes(): void
+    {
+        $files = glob(base_path(self::API_ROUTES_PATH.'/Visit/*.php'));
+        foreach ($files as $file) {
+            Route::middleware('api')
+                ->prefix('api/visits')
+                ->group($file);
+        }
     }
 }
