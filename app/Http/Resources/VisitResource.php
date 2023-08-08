@@ -16,9 +16,12 @@ class VisitResource extends JsonResource
         return [
             'id'         => $this->id,
             'receipt'    => $this->receipt,
-            'loyalty'    => LoyaltyResource::make($this->loyalty),
-            'member'     => MemberResource::make($this->member),
+            'loyalty'    => LoyaltyResource::make($this->whenLoaded('loyalty')),
+            'member'     => MemberResource::make($this->whenLoaded('member')),
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
+            'points'    => $this->points,
+            'cashier'   => $this->cashier,
+            'member'   => $this->member,
         ];
     }
 }

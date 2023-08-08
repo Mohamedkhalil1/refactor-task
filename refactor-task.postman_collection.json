@@ -1,0 +1,212 @@
+{
+	"info": {
+		"_postman_id": "e55e5366-ce5c-4a96-8490-e83b873d35c4",
+		"name": "refactor-task",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "5486234",
+		"_collection_link": "https://restless-crater-663961.postman.co/workspace/My-Workspace~47c277b8-483e-4d1e-8008-52f90e3b18a1/collection/5486234-e55e5366-ce5c-4a96-8490-e83b873d35c4?action=share&creator=5486234&source=collection_link"
+	},
+	"item": [
+		{
+			"name": "members",
+			"item": [
+				{
+					"name": "getMembers",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": []
+						},
+						"url": {
+							"raw": "http://localhost/refactor-task/public/api/members?search=",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"refactor-task",
+								"public",
+								"api",
+								"members"
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "addMember",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "first_name",
+									"value": "member",
+									"type": "text"
+								},
+								{
+									"key": "last_name",
+									"value": "second",
+									"type": "text"
+								},
+								{
+									"key": "gender",
+									"value": "male",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "member2@gmail.com",
+									"type": "text"
+								},
+								{
+									"key": "phone",
+									"value": "01033323231111",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost/refactor-task/public/api/members",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"refactor-task",
+								"public",
+								"api",
+								"members"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "updateMember",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "destroyMember",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "visits",
+			"item": [
+				{
+					"name": "addVisit",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "cashier_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "member_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "receipt",
+									"value": "4.2",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost/refactor-task/public/api/visits",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"refactor-task",
+								"public",
+								"api",
+								"visits"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getVisits",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "showVisit",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost/refactor-task/public/api/visits/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"refactor-task",
+								"public",
+								"api",
+								"visits",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "destroyVisit",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "updateVisit",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

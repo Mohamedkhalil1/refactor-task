@@ -12,7 +12,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class LoyaltyResource extends JsonResource
 {
     public function toArray(Request $request): array
-    {
+    {   
         return [
             'id'     => $this->id,
             'points' => $this->points,
