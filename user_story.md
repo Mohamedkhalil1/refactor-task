@@ -83,30 +83,34 @@
 #### Relationships
 
 1. Customer Table
-    - has many transactions
-    - has many customer_rewards
-    - has many customer_membership
+    - has many transactions [one to many]
+    - has many rewards  [many to many]
+    - has many memberships [one to many]
 
 2. Rewards_Catalog
-    - has many customer_rewards
+    - has many customers [many to many
 
-3. Customer_Rewards
+3. Customer_Rewards [Pivot Table]
     - belongs to customer
     - belongs to rewards_catalog
 
 4. Transactions Table
-    - belongs to customer
+    - belongs to customer [Reverse Relation]
 
 5. Privileges Table
-    - has many tiered 
+    - has many tiered [many to many]
 
 6. Tiered Table
-    - has many privileges
-    - has many customer_membership
+    - has many privileges [many to many]
+    - has many memberships [one to many]
 
-7. Customer_Membership
-    - belongs to customer
+7. Tiered_privileges Table [Pivot Table]
     - belongs to tiered
+    - belongs to privileges
+
+8. Customer_Membership
+    - belongs to customer [Reverse Relation]
+    - belongs to tiered [Reverse Relation]
 
 
 
