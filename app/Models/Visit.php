@@ -20,7 +20,7 @@ class Visit extends Model
 
     protected $casts = [
         'member_id' => 'integer',
-        'receipt' => 'integer',
+        'receipt' => 'float',
         'cashier_id' => 'integer',
     ];
 

@@ -9,7 +9,7 @@ class UpdateVisitRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'receipt' => ['required', 'integer', 'min:1'],
+            'receipt' => ['required', 'decimal', 'min:1', 'between:1,999.99', 'decimal:2'],
         ];
     }
 

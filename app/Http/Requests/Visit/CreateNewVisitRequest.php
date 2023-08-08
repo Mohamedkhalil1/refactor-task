@@ -12,7 +12,7 @@ class CreateNewVisitRequest extends FormRequest
     {
         return [
             'member_id' => ['required', 'integer', 'exists:members,id'],
-            'receipt' => ['required', 'integer', 'min:1'],
+            'receipt' => ['required',  'min:1', 'between:1,999.99', 'decimal:2'],
             'cashier_id' => ['required', 'integer', 'exists:cashiers,id'],
         ];
     }
