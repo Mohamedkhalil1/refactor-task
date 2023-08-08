@@ -11,6 +11,14 @@ class Member extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'first_name',
+        'last_name',
+        'gender',
+        'email',
+        'phone'
+    ];
+
     #region Attributes
 
     #endregion

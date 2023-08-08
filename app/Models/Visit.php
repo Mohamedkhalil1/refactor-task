@@ -13,6 +13,11 @@ class Visit extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'cashier_id',
+        'member_id',
+        'receipt',
+    ];
 
     #region Attributes
 
@@ -24,9 +29,14 @@ class Visit extends Model
         return $this->belongsTo(Member::class);
     }
 
-    public function loyalty(): HasOne
+    public function cashier(): BelongsTo
     {
-        return $this->hasOne(Loyalty::class);
+        return $this->belongsTo(Cashier::class);
+    }
+
+    public function loyalty(): HasMany
+    {
+        return $this->hasMany(Loyalty::class);
     }
     #endregion
 }

@@ -7,9 +7,16 @@ use App\Models\Cashier;
 use App\Models\Visit;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use App\Services\LoyaltyService;
 
 class VisitController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->LoyaltyService = new LoyaltyService();
+    }
+
     # index: to get visit with search by member name
     # filter by member phone number
     # search by cashier name
@@ -23,25 +30,52 @@ class VisitController extends Controller
     public function index(): AnonymousResourceCollection
     {
         $visits = Visit::query()
-            ->when(request()->search, function ($query) {
-                $query->whereHas('member', function ($query) {
-                    $query->where('first_name', 'like', '%' . request()->search . '%')
-                        ->orWhere('last_name', 'like', '%' . request()->search . '%')
-                        ->orWhere('email', 'like', '%' . request()->search . '%')
-                        ->orWhere('phone', 'like', '%' . request()->search . '%');
+            ->when(request('search'), function ($query) {
+                $query->where(function ($query) {
+                    $query->whereDate('visits.created_at', request('search'))
+                          ->orWhere('visits.receipt', 'like', '%' .request('search') . '%');
+                })
+
+                ->orWhereHas('member', function ($query) {
+                    $query->where('first_name', 'like', '%' . request('search') . '%')
+                        ->orWhere('last_name', 'like', '%' . request('search') . '%')
+                        ->orWhere(\DB::raw("CONCAT(`first_name`,' ',`last_name`)"), 'like', '%' . request('search') . '%')
+                        ->orWhere('email', 'like', '%' . request('search') . '%')
+                        ->orWhere('phone', 'like', '%' . request('search') . '%');
+                })
+
+                ->orWhereHas('cashier', function ($query) {
+                    $query->where('name', 'like', '%' . request('search') . '%');
+                })
+
+                ->orWhereHas('member', function ($query) {
+                    $query->where('phone', 'like', '%' . request('search') . '%');
                 });
+
             })
-            ->when(request()->search, function ($query) {
-                $query->whereHas('cashier', function ($query) {
-                    $query->where('name', 'like', '%' . request()->search . '%');
-                });
-            })
-            ->when(request()->search, function ($query) {
-                $query->whereHas('member', function ($query) {
-                    $query->where('phone', 'like', '%' . request()->search . '%');
-                });
-            })
-            ->all();
+            
+            ->addSelect(['points' => function($query) {
+                $query->select('points')
+                    ->from('loyalty')
+                    ->whereColumn('visits.id', 'loyalty.visit_id')->limit(1);
+            }])
+
+            ->addSelect(['cashier' => function($query) {
+                $query->select('name')
+                    ->from('cashiers')
+                    ->whereColumn('cashiers.id', 'visits.cashier_id')->limit(1);
+            }])
+
+            ->addSelect(['member' => function($query) {
+                $query->selectRaw('CONCAT(first_name, " ", last_name) as full_name')
+                    ->from('members')
+                    ->whereColumn('members.id', 'visits.member_id')->limit(1);
+            }])
+            ->leftJoin('loyalty', 'visits.id', '=', 'loyalty.visit_id')
+            ->groupBy('visits.id', 'visits.receipt', 'visits.member_id', 'visits.cashier_id', 'visits.created_at'
+            , 'visits.updated_at')
+            ->orderByRaw('MAX(loyalty.points) DESC')
+            ->get();
 
         return VisitResource::collection($visits);
     }
@@ -58,40 +92,27 @@ class VisitController extends Controller
     public function store(Request $request)
     {
         $visit = Visit::create($request->all());
+       
         $cashier = Cashier::find($request->cashier_id);
         $settings = $cashier->settings;
+        $this->LoyaltyService->createLoyaltyPoints($visit, $settings, $request->all());
 
-        if ($settings->loyalty_model == 'first_model' && $request->receipt >= $settings->min_amount) {
-            $visit->loyalty()->create([
-                'points' => $request->receipt * $settings->factor,
-            ]);
-        } elseif ($settings->loyalty_model == 'second_model' && $request->receipt >= $settings->min_amount) {
-            $visit->loyalty()->create([
-                'points' => $request->receipt / $settings->factor,
-            ]);
-        }
     }
 
     public function update(Request $request, Visit $visit)
     {
         $visit->update($request->all());
+        
         $cashier = Cashier::find($request->cashier_id);
         $settings = $cashier->settings;
-        if ($settings->loyalty_model == 'first_model' && $request->receipt >= $settings->min_amount) {
-            $visit->loyalty()->create([
-                'points' => $request->receipt * $settings->factor,
-            ]);
-        } elseif ($settings->loyalty_model == 'second_model' && $request->receipt >= $settings->min_amount) {
-            $visit->loyalty()->create([
-                'points' => $request->receipt / $settings->factor,
-            ]);
-        }
+        $this->LoyaltyService->createLoyaltyPoints($visit, $settings, $request->all());
+
     }
 
     public function destroy(Visit $visit)
     {
-        $visit->delete();
         $visit->loyalty()->delete();
+        $visit->delete();
     }
 
 }
