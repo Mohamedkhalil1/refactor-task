@@ -10,11 +10,18 @@ use App\Http\Resources\VisitResource;
 use App\Models\Cashier;
 use App\Models\Member;
 use App\Models\Visit;
-use App\Services\Visit\VisitService;
+use App\Services\ControllerLogic\Visit\VisitService;
 use Exception;
 
 class VisitController extends Controller
 {
+    private VisitService $visitService;
+
+    public function __construct(VisitService $visitService)
+    {
+        $this->visitService = $visitService;
+    }
+
     // index: to get visit with search by member name
     // filter by member phone number
     // search by cashier name
@@ -27,22 +34,14 @@ class VisitController extends Controller
 
     public function index(FilterAllVisitsRequest $request)
     {
-        $visits = Visit::query()
-            ->join('loyalties', 'visits.id', '=', 'loyalties.visit_id')
-            ->with(['loyalty:id,points,visit_id', 'cashier:id,name', 'member:id,first_name,last_name'])
-            ->searchByMember(search : request('member_search'), columns : ['name', 'email', 'phone'])
-            ->searchByCashier(search : request('cashier_search'), columns  : ['name', 'email'])
-            ->searchByDate(date : request('date_search'))
-            ->searchByReceipt(search : request('receipt_search'))
-            ->orderBy('loyalties.points', 'desc')
-            ->paginate();
+        $visits = $this->visitService->getAllVisits($request)->paginate();
 
         return success(VisitResource::collection($visits));
     }
 
     public function show(Visit $visit)
     {
-        $visit->load(['loyalty:id,points,visit_id', 'cashier:id,name', 'member:id,first_name,last_name']);
+        $visit = $this->visitService->getVisit($visit);
 
         return success(VisitResource::make($visit));
     }
@@ -50,10 +49,23 @@ class VisitController extends Controller
     // create visit and loyalty when member buy something
     // note: cashier who create visits
     // you can assume that cashier is logged in (auth::user() == cashier)
-    public function store(CreateNewVisitRequest $request, VisitService $visitService)
+    public function store(CreateNewVisitRequest $request)
     {
         try {
-            $visit = $visitService->handelCreationWithLoyalty($request);
+            $visit = $this->visitService->createWithLoyalty($request);
+
+            return success(VisitResource::make($visit));
+        } catch (Exception $e) {
+            ray($e);
+
+            return fail([], $e->getMessage());
+        }
+    }
+
+    public function update(UpdateVisitRequest $request, Visit $visit)
+    {
+        try {
+            $visit = $this->visitService->updateWithLoyalty($request, $visit);
 
             return success(VisitResource::make($visit));
         } catch (Exception $e) {
@@ -61,21 +73,10 @@ class VisitController extends Controller
         }
     }
 
-    public function update(UpdateVisitRequest $request, Visit $visit, VisitService $visitService)
+    public function destroy(Visit $visit)
     {
         try {
-            $visit = $visitService->handelUpdateWithLoyalty($request, $visit);
-
-            return success(VisitResource::make($visit));
-        } catch (Exception $e) {
-            return fail([], $e->getMessage());
-        }
-    }
-
-    public function destroy(Visit $visit, VisitService $visitService)
-    {
-        try {
-            $visitService->deleteVisit($visit);
+            $this->visitService->deleteVisit($visit);
 
             return success([], 'visit deleted successfully');
         } catch (Exception $e) {

@@ -7,39 +7,73 @@ use Illuminate\Database\Eloquent\Builder;
 
 trait HasSearch
 {
-    public function scopeSearch(Builder $query, $search, $columns)
+    public function scopeSearch(Builder $query, $search = null, array $columns = []): Builder
     {
         $searchQuery = trim($search);
 
-        return $query
-            ->when(! empty($searchQuery), function ($query) use ($columns, $searchQuery) {
-                $query->where(function ($query) use ($columns, $searchQuery) {
-                    foreach ($columns as $column) {
-                        if ($query->getModel()::class == Member::class && $column == 'name') {
-                            $query->searchByMemberName($searchQuery);
+        if (empty($searchQuery)) {
+            return $query;
+        }
 
-                            continue;
-                        }
-
-                        $query->orWhere($column, 'like', '%'.$searchQuery.'%');
-                    }
-                });
-            });
+        return $query->where(function ($query) use ($columns, $searchQuery) {
+            foreach ($columns as $column) {
+                $this->addColumnToSearch($query, $column, $searchQuery);
+            }
+        });
     }
 
-    public function scopeSearchByMemberName($query, $search)
+    private function addColumnToSearch($query, string $column, string $searchQuery): void
     {
-        $searchQuery = explode(' ', $search);
+        if ($this->isMemberNameColumn($query, $column)) {
+            $query->searchByMemberName($searchQuery);
+        } else {
+            $query->orWhere($column, 'like', '%'.$searchQuery.'%');
+        }
+    }
 
-        $first_name = $searchQuery[0];
-        $last_name = $searchQuery[1] ?? null;
+    private function isMemberNameColumn($query, string $column): bool
+    {
+        return $this->modelIsMember($query) && $this->isColumnName($column);
+    }
 
-        return $query
-            ->when(! empty($first_name), function ($query) use ($first_name) {
-                $query->where('first_name', 'like', '%'.$first_name.'%');
-            })
-            ->when(! empty($last_name), function ($query) use ($last_name) {
-                $query->where('last_name', 'like', '%'.$last_name.'%');
-            });
+    private function modelIsMember($query): bool
+    {
+        return $query->getModel() instanceof Member;
+    }
+
+    private function isColumnName(string $column): bool
+    {
+        return $column === 'name';
+    }
+
+    public function scopeSearchByMemberName($query, string $search): Builder
+    {
+        [$first_name, $last_name] = $this->splitName($search);
+
+        $this->addFirstNameFilter($query, $first_name);
+        $this->addLastNameFilter($query, $last_name);
+
+        return $query;
+    }
+
+    private function splitName(string $search): array
+    {
+        $searchQuery = explode(' ', $search, 2);
+
+        return [$searchQuery[0], $searchQuery[1] ?? null];
+    }
+
+    private function addFirstNameFilter($query, ?string $first_name): void
+    {
+        if (! empty($first_name)) {
+            $query->where('first_name', 'like', '%'.$first_name.'%');
+        }
+    }
+
+    private function addLastNameFilter($query, ?string $last_name): void
+    {
+        if (! empty($last_name)) {
+            $query->where('last_name', 'like', '%'.$last_name.'%');
+        }
     }
 }

@@ -2,7 +2,6 @@
 
 namespace App\Services\Api;
 
-use App\Exceptions\Visit\FactorZeroValueException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,18 +18,16 @@ class ApiExceptionHandler
 
     public static function apiException(Throwable $exception, Request $request): JsonResponse
     {
-        $response = match (get_class($exception)) {
+        return match (get_class($exception)) {
             ValidationException::class => self::handelValidationException($exception),
             ModelNotFoundException::class => self::handelModelNotFoundException($exception),
             NotFoundHttpException::class => self::handelNotFoundHttpException($exception),
-            FactorZeroValueException::class => self::handelFactorZeroValueException($exception),
             default => self::handelServerErrorException($exception),
         };
 
-        return $response;
     }
 
-    public static function handelValidationException(ValidationException $exception)
+    public static function handelValidationException(ValidationException $exception): JsonResponse
     {
         return response()->json([
             'message' => 'The given data was invalid.',
@@ -38,21 +35,21 @@ class ApiExceptionHandler
         ], 422);
     }
 
-    public static function handelNotFoundHttpException(NotFoundHttpException $exception)
+    public static function handelNotFoundHttpException(NotFoundHttpException $exception): JsonResponse
     {
         return response()->json([
             'message' => 'Record not found.',
         ], 404);
     }
 
-    public static function handelModelNotFoundException(ModelNotFoundException $exception)
+    public static function handelModelNotFoundException(ModelNotFoundException $exception): JsonResponse
     {
         return response()->json([
             'message' => 'Model not found.',
         ], 404);
     }
 
-    public static function handelServerErrorException($exception)
+    public static function handelServerErrorException($exception): JsonResponse
     {
         $details = [];
 
@@ -67,13 +64,5 @@ class ApiExceptionHandler
         return response()->json(array_merge([
             'message' => $exception->getMessage() ?? 'Server error.',
         ], $details), 500);
-    }
-
-    // handel FactorZeroValueException
-    public static function handelFactorZeroValueException(FactorZeroValueException $exception)
-    {
-        return response()->json([
-            'message' => $exception->getMessage(),
-        ], 422);
     }
 }

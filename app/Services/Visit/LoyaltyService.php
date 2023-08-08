@@ -2,9 +2,12 @@
 
 namespace App\Services\Visit;
 
+use App\Enums\LoyaltyModel;
 use App\Models\Setting;
 use App\Models\Visit;
+use Illuminate\Database\Eloquent\Model;
 use LogicException;
+use Throwable;
 
 class LoyaltyService
 {
@@ -12,34 +15,50 @@ class LoyaltyService
 
     private Setting $setting;
 
+    /**
+     * @return $this
+     *
+     * @throws Throwable
+     */
     public function setVisit(Visit $visit): self
     {
         $this->visit = $visit;
         $cashier = $this->visit->cashier;
 
-        throw_if(! $cashier->settings, new LogicException('No settings found for cashier', 404));
+        throw_if(! $cashier->settings, new LogicException('No settings found for cashier', 400));
 
         $this->setting = $cashier->settings;
 
         return $this;
     }
 
-    public function handelCreation()
+    /**
+     * @throws Throwable
+     */
+    public function handelCreation(): Model
     {
-        if ($this->setting->factor == 0) {
-            throw new LogicException('Factor value can not be zero', 404);
-        }
+        throw_if($this->setting->factor <= 0, new LogicException('Factor must be greater than 0', 400));
 
-        if ($this->setting->loyalty_model == 'first_model' && ($this->visit->receipt >= $this->setting->min_points)) {
+        if ($this->isValidForFirstModel()) {
             return $this->createFirstModelLoyalty();
-        } elseif ($this->setting->loyalty_model == 'second_model' && $this->visit->receipt < $this->setting->min_points) {
+        } elseif ($this->isValidForSecondModel()) {
             return $this->createSecondModelLoyalty();
         }
 
-        throw new LogicException('No loyalty model found', 404);
+        throw new LogicException('No loyalty model found', 400);
     }
 
-    private function createFirstModelLoyalty()
+    public function isValidForFirstModel(): bool
+    {
+        return $this->setting->loyalty_model == LoyaltyModel::FIRST_MODEL && ($this->visit->receipt >= $this->setting->min_points);
+    }
+
+    public function isValidForSecondModel(): bool
+    {
+        return $this->setting->loyalty_model == LoyaltyModel::SECOND_MODEL && $this->visit->receipt < $this->setting->min_points;
+    }
+
+    private function createFirstModelLoyalty(): Model
     {
         return $this->visit->loyalty()->create([
             'points' => $this->visit->receipt * $this->setting->factor,
@@ -47,14 +66,18 @@ class LoyaltyService
     }
 
     // second model
-    private function createSecondModelLoyalty()
+
+    private function createSecondModelLoyalty(): Model
     {
         return $this->visit->loyalty()->create([
             'points' => $this->visit->receipt / $this->setting->factor,
         ]);
     }
 
-    public function deleteLoyalty()
+    /**
+     * @return $this
+     */
+    public function deleteLoyalty(): self
     {
         $this->visit->loyalty()->delete();
 

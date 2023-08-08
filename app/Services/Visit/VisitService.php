@@ -2,7 +2,6 @@
 
 namespace App\Services\Visit;
 
-use App\Exceptions\Visit\FactorZeroValueException;
 use App\Models\Visit;
 use Illuminate\Http\Request;
 
@@ -10,13 +9,17 @@ class VisitService
 {
     private LoyaltyService $loyaltyService;
 
-    public function __construct(LoyaltyService $loyaltyService)
+    public function __construct()
     {
-        $this->loyaltyService = $loyaltyService;
+        $this->loyaltyService = new LoyaltyService();
     }
 
     public function create(Request $request): Visit
     {
+
+        // we can save last_visit_date , max_receipt , total_receipt , total_points in member table each time we create visit
+        // or we can calculate it when we need it
+
         return Visit::create([
             'member_id' => $request->member_id,
             'receipt' => $request->receipt,
@@ -39,7 +42,7 @@ class VisitService
     }
 
     /**
-     * @throws FactorZeroValueException
+     * @throws \Throwable
      */
     public function handelCreationWithLoyalty(Request $request): Visit
     {
@@ -50,7 +53,9 @@ class VisitService
         return $visit;
     }
 
-    // handelUpdateWithLoyalty
+    /**
+     * @throws \Throwable
+     */
     public function handelUpdateWithLoyalty(Request $request, Visit $visit): Visit
     {
         $visit = $this->updateVisit($request, $visit)->load('cashier.settings');

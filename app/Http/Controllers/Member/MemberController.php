@@ -7,10 +7,18 @@ use App\Http\Requests\Member\CreateMemeberRequest;
 use App\Http\Requests\Member\UpdateMemberRequest;
 use App\Http\Resources\MemberResource;
 use App\Models\Member;
+use App\Services\ControllerLogic\Member\MemberService;
 use Illuminate\Http\Request;
 
 class MemberController extends Controller
 {
+    private MemberService $memberService;
+
+    public function __construct(MemberService $memberService)
+    {
+        $this->memberService = $memberService;
+    }
+
     // you should get member list with
     // 1. search by name, email, phone
     // 2. order them `DESC`
@@ -20,61 +28,22 @@ class MemberController extends Controller
     // 6. load total loyalty points as total_points
     public function index(Request $request)
     {
-        $members = Member::search(search : request('search'), columns : ['name', 'email', 'phone'])
-            ->withVisitDetails()
-            ->orderBy('id', 'desc')
-            ->paginate();
+        $searchColumns = ['name', 'email', 'phone'];
+        $members = $this->memberService->getAllMembers($request->input('search'), $searchColumns)->paginate();
 
         return success(MemberResource::collection($members));
     }
 
     public function getMemberHasNoVisit()
     {
-        //        // This method is the fastest for larger datasets
-        //        $members = Member::where('visit_count', 0)
-        //            ->orderBy('id', 'desc')
-        //            ->paginate();
-        //
-        //        // his method is best suited for small to medium datasets or applications
-        //        // where database performance isn't critical and maintainability / readability of code is crucial.
-        //        $members = Member::whereDoesntHave('visits')
-        //            ->orderBy('id', 'desc')
-        //            ->paginate();
-
-        // This method works relatively well for both small and large datasets as it avoids the subquery,
-        $members = Member::query()
-            ->select('members.*')
-            ->leftJoin('visits', 'members.id', '=', 'visits.member_id')
-            ->whereNull('visits.member_id')
-            ->orderBy('members.id', 'desc')
-            ->paginate();
+        $members = $this->memberService->getMemberHasNoVisit()->paginate();
 
         return success(MemberResource::collection($members));
     }
 
     public function getMemberHasVisit()
     {
-        //        // This method is the fastest for larger datasets
-        //        $members = Member::where('visit_count', '>', 0)
-        //            ->withVisitDetails()
-        //            ->orderBy('id', 'desc')
-        //            ->paginate();
-
-        //
-        //        // his method is best suited for small to medium datasets or applications
-        //        // where database performance isn't critical and maintainability / readability of code is crucial.
-        //        $members = Member::whereHas('visits')
-        //            ->orderBy('id', 'desc')
-        //            ->withVisitDetails()
-        //            ->paginate();
-
-        // This method works relatively well for both small and large datasets as it avoids the subquery,
-        $members = Member::query()
-            ->select('members.*')
-            ->join('visits', 'members.id', '=', 'visits.member_id')
-            ->orderBy('members.id', 'desc')
-            ->withVisitDetails()
-            ->paginate();
+        $members = $this->memberService->getMemberHasVisit()->paginate();
 
         return success(MemberResource::collection($members));
     }
@@ -82,7 +51,7 @@ class MemberController extends Controller
     // create member
     public function store(CreateMemeberRequest $request)
     {
-        Member::create($request->validated());
+        $this->memberService->create($request);
 
         return success([], 'Member created successfully');
     }
@@ -90,7 +59,7 @@ class MemberController extends Controller
     // update member
     public function update(UpdateMemberRequest $request, Member $member)
     {
-        $member->update($request->validated());
+        $this->memberService->update($request, $member);
 
         return success([], 'Member updated successfully');
     }
@@ -98,7 +67,7 @@ class MemberController extends Controller
     // delete member
     public function destroy(Member $member)
     {
-        $member->delete();
+        $this->memberService->delete($member);
 
         return success([], 'Member deleted successfully');
     }
